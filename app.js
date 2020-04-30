@@ -28,6 +28,7 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 app.engine('handlebars', exphbs({defaultLayout: 'layout'}));
 // app.set('view engine', 'engineToUse') -> sets default viewing engine
 app.set('view engine', 'handlebars');
+require('dotenv').config();
 
 /*
     Bodyparser Middleware + Express session
@@ -39,7 +40,7 @@ app.use(cookieParser());
 //         -> creates an object req.session, where you can add properties
 //         -> (ex: req.session.page_views, to count how many times he entered on the page)
 app.use(session({
-    secret: 'secret',
+    secret: process.env.SESSION_SECRET,
     saveUninitialized: true,
     resave: true
 }));
@@ -86,6 +87,18 @@ app.use(function (req, res, next) {
 /*
     Ensure authetification
 */
+
+//setting up rate limiter -- max 3 requests per minute 
+var RateLimit = require('express-rate-limit');
+var limiter = new RateLimit ({
+    windowMs: 1*60*1000,
+    max: 30
+})
+
+app.use(limiter);
+
+
+
 app.use('/app', (req, res, next) => {
     // check to be authentificated
     if (req.isAuthenticated()) { // if yes, continue

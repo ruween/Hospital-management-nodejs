@@ -8,6 +8,13 @@ const express = require('express');
 const _ = require('lodash');
 const router = express.Router();
 
+//DOMpurify fix XSS
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+ 
+const window = new JSDOM('').window;
+const DOMPurify = createDOMPurify(window);
+
 
 var {scoreOfDisease, Disease} = require('./../server/models/diseases.js');
 var {Patient} = require('./../server/models/patient.js');
@@ -39,8 +46,8 @@ router.get('/app/getdiseases', (req, res) => {
     POST /app/adddisease -> add a new disease in the system
 */
 router.post('/app/adddisease', (req, res) => {
-    var diseaseName = req.body.diseaseName;
-    var diseaseScore = req.body.diseaseScore;
+    var diseaseName = DOMPurify.sanitize(req.body.diseaseName);
+    var diseaseScore = DOMPurify.sanitize(req.body.diseaseScore);  //sanitized
 
     // check that the name is a String and score is a Number
     if (_.isString(diseaseName) && !_.isNaN(diseaseScore)) {

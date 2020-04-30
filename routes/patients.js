@@ -18,6 +18,13 @@ var {rooms, Room} = require('./../server/models/rooms.js');
 var isValidDate = require('is-valid-date');
 const {ObjectID} = require('mongodb');
 
+//Fix
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+
+const window = new JSDOM('').window;
+const DOMPurify = createDOMPurify(window);
+
 
 /*
     GET /app/addpatient -> go to addPatient page
@@ -58,13 +65,17 @@ router.post('/app/addpatient', (req, res) => {
             sex = false;
         }
 
+        var cleanfirstname = DOMPurify.sanitize(req.body.firstname);
+        var cleanlastname = DOMPurify.sanitize(req.body.lastname);
+        var cleanhospitalNumber = DOMPurify.sanitize(req.body.hospitalNumber);
+
         // make a new patient and add it in the database
         var patient = Patient({
-            firstName: _.capitalize(req.body.firstName),
-            lastName: _.capitalize(req.body.lastName),
+            firstName: _.capitalize(cleanfirstname),
+            lastName: _.capitalize(cleanlastname),
             sex: sex,
             dateOfBirth: dateOfBirth,
-            hospitalNumber: _.toUpper(req.body.hospitalNumber),
+            hospitalNumber: _.toUpper(cleanhospitalNumber),
             diseases: PD,
             lastUpdate: (new Date().getTime())
         });
